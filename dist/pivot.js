@@ -1164,15 +1164,15 @@
         pivotData = new opts.dataClass(input, opts);
         try {
           result = opts.renderer(pivotData, opts.rendererOptions);
-        } catch (_error) {
-          e = _error;
+        } catch (error) {
+          e = error;
           if (typeof console !== "undefined" && console !== null) {
             console.error(e.stack);
           }
           result = $("<span>").html(opts.localeStrings.renderError);
         }
-      } catch (_error) {
-        e = _error;
+      } catch (error) {
+        e = error;
         if (typeof console !== "undefined" && console !== null) {
           console.error(e.stack);
         }
@@ -1189,7 +1189,7 @@
     Pivot Table UI: calls Pivot Table core above with options set by user
      */
     $.fn.pivotUI = function(input, inputOpts, overwrite, locale) {
-      var a, aggregator, attr, attrLength, attrValues, colOrderArrow, defaults, e, existingOpts, fn1, i, initialRender, l, len1, len2, len3, localeDefaults, localeStrings, materializedInput, n, o, opts, ordering, pivotTable, recordsProcessed, ref, ref1, ref2, ref3, refresh, refreshDelayed, renderer, rendererControl, rowOrderArrow, shownAttributes, tr1, tr2, uiTable, unused, unusedAttrsVerticalAutoCutoff, unusedAttrsVerticalAutoOverride, x;
+      var a, addNewRow, addNewSlice, aggregator, attr, attrLength, attrValues, colOrderArrow, defaults, e, existingOpts, fn1, i, initialRender, l, len1, len2, len3, localeDefaults, localeStrings, materializedInput, n, o, opts, ordering, pivotTable, pivotTableTr1Td1, pivotTableTr1Td2, recordsProcessed, ref, ref1, ref2, refresh, refreshDelayedPlot, refreshPlot, renderer, rendererControl, rowIds, rowOrderArrow, selectOptions, shownAttributes, tdAdded, tdDividedIntoTwoTd, tr1, tr2, uiTable, unused, unusedAttrsVerticalAutoCutoff, unusedAttrsVerticalAutoOverride, x;
       if (overwrite == null) {
         overwrite = false;
       }
@@ -1265,15 +1265,6 @@
         uiTable = $("<table>", {
           "class": "pvtUi"
         }).attr("cellpadding", 5);
-        rendererControl = $("<td>");
-        renderer = $("<select>").addClass('pvtRenderer').appendTo(rendererControl).bind("change", function() {
-          return refresh();
-        });
-        ref = opts.renderers;
-        for (x in ref) {
-          if (!hasProp.call(ref, x)) continue;
-          $("<option>").val(x).html(x).appendTo(renderer);
-        }
         unused = $("<td>").addClass('pvtAxisContainer pvtUnused');
         shownAttributes = (function() {
           var results;
@@ -1305,7 +1296,7 @@
           unused.addClass('pvtHorizList');
         }
         fn1 = function(attr) {
-          var attrElem, checkContainer, closeFilterBox, controls, filterItem, filterItemExcluded, finalButtons, hasExcludedItem, len2, n, placeholder, ref1, sorter, triangleLink, v, value, valueCount, valueList, values;
+          var attrElem, checkContainer, closeFilterBox, controls, filterItem, filterItemExcluded, finalButtons, hasExcludedItem, len2, n, placeholder, ref, sorter, triangleLink, v, value, valueCount, valueList, values;
           values = (function() {
             var results;
             results = [];
@@ -1334,12 +1325,12 @@
                 filter = $(this).val().toLowerCase().trim();
                 accept_gen = function(prefix, accepted) {
                   return function(v) {
-                    var real_filter, ref1;
+                    var real_filter, ref;
                     real_filter = filter.substring(prefix.length).trim();
                     if (real_filter.length === 0) {
                       return true;
                     }
-                    return ref1 = Math.sign(sorter(v.toLowerCase(), real_filter)), indexOf.call(accepted, ref1) >= 0;
+                    return ref = Math.sign(sorter(v.toLowerCase(), real_filter)), indexOf.call(accepted, ref) >= 0;
                   };
                 };
                 accept = filter.startsWith(">=") ? accept_gen(">=", [1, 0]) : filter.startsWith("<=") ? accept_gen("<=", [-1, 0]) : filter.startsWith(">") ? accept_gen(">", [1]) : filter.startsWith("<") ? accept_gen("<", [-1]) : filter.startsWith("~") ? function(v) {
@@ -1373,9 +1364,9 @@
               });
             }
             checkContainer = $("<div>").addClass("pvtCheckContainer").appendTo(valueList);
-            ref1 = values.sort(getSort(opts.sorters, attr));
-            for (n = 0, len2 = ref1.length; n < len2; n++) {
-              value = ref1[n];
+            ref = values.sort(getSort(opts.sorters, attr));
+            for (n = 0, len2 = ref.length; n < len2; n++) {
+              value = ref[n];
               valueCount = attrValues[attr][value];
               filterItem = $("<label>");
               filterItemExcluded = false;
@@ -1422,8 +1413,8 @@
             return closeFilterBox();
           });
           triangleLink = $("<span>").addClass('pvtTriangle').html(" &#x25BE;").bind("click", function(e) {
-            var left, ref2, top;
-            ref2 = $(e.currentTarget).position(), left = ref2.left, top = ref2.top;
+            var left, ref1, top;
+            ref1 = $(e.currentTarget).position(), left = ref1.left, top = ref1.top;
             return valueList.css({
               left: left + 10,
               top: top + 10
@@ -1444,9 +1435,9 @@
         aggregator = $("<select>").addClass('pvtAggregator').bind("change", function() {
           return refresh();
         });
-        ref1 = opts.aggregators;
-        for (x in ref1) {
-          if (!hasProp.call(ref1, x)) continue;
+        ref = opts.aggregators;
+        for (x in ref) {
+          if (!hasProp.call(ref, x)) continue;
           aggregator.append($("<option>").val(x).html(x));
         }
         ordering = {
@@ -1484,34 +1475,60 @@
         $("<td>").addClass('pvtAxisContainer pvtHorizList pvtCols').appendTo(tr1);
         tr2 = $("<tr>").appendTo(uiTable);
         tr2.append($("<td>").addClass('pvtAxisContainer pvtRows').attr("valign", "top"));
-        pivotTable = $("<td>").attr("valign", "top").addClass('pvtRendererArea').appendTo(tr2);
-        if (opts.unusedAttrsVertical === true || unusedAttrsVerticalAutoOverride) {
-          uiTable.find('tr:nth-child(1)').prepend(rendererControl);
-          uiTable.find('tr:nth-child(2)').prepend(unused);
-        } else {
-          uiTable.prepend($("<tr>").append(rendererControl).append(unused));
-        }
-        this.html(uiTable);
-        ref2 = opts.cols;
-        for (n = 0, len2 = ref2.length; n < len2; n++) {
-          x = ref2[n];
-          this.find(".pvtCols").append(this.find(".axis_" + ($.inArray(x, shownAttributes))));
-        }
-        ref3 = opts.rows;
-        for (o = 0, len3 = ref3.length; o < len3; o++) {
-          x = ref3[o];
-          this.find(".pvtRows").append(this.find(".axis_" + ($.inArray(x, shownAttributes))));
-        }
-        if (opts.aggregatorName != null) {
-          this.find(".pvtAggregator").val(opts.aggregatorName);
-        }
-        if (opts.rendererName != null) {
-          this.find(".pvtRenderer").val(opts.rendererName);
-        }
-        initialRender = true;
-        refreshDelayed = (function(_this) {
+        pivotTable = $("<td>").attr("valign", "top").appendTo(tr2);
+        tdAdded = 0;
+        addNewRow = null;
+        pivotTableTr1Td1 = [];
+        tdDividedIntoTwoTd = [];
+        rendererControl = [];
+        renderer = [];
+        pivotTableTr1Td2 = [];
+        rowIds = [];
+        addNewSlice = (function(_this) {
           return function() {
-            var exclusions, inclusions, len4, newDropdown, numInputsToProcess, pivotUIOptions, pvtVals, ref4, ref5, subopts, t, u, unusedAttrsContainer, vals;
+            var addNewRowInsidePivotTable, ref1, ref2, rowId;
+            rowId = Date.now();
+            rowIds.push(rowId);
+            console.log(rowIds);
+            if (tdAdded === 0) {
+              addNewRow = $("<tr>");
+              addNewRowInsidePivotTable = $("<tr>").appendTo(pivotTable);
+              pivotTableTr1Td1[rowId] = $("<td>").attr("valign", "top").appendTo(addNewRowInsidePivotTable);
+              tdDividedIntoTwoTd[rowId] = addNewRow.appendTo(pivotTableTr1Td1[rowId]);
+              rendererControl[rowId] = $("<td>").attr("valign", "top").appendTo(tdDividedIntoTwoTd[rowId]);
+              renderer[rowId] = $("<select>").addClass('pvtRenderer' + rowId).appendTo(rendererControl[rowId]).bind("change", function() {
+                selectOptions('pvtRenderer' + rowId);
+                return refreshPlot(rowId);
+              });
+              ref1 = opts.renderers;
+              for (x in ref1) {
+                if (!hasProp.call(ref1, x)) continue;
+                $("<option>").val(x).html(x).appendTo(renderer[rowId]);
+              }
+              pivotTableTr1Td2[rowId] = $("<td>").attr("valign", "top").addClass('pvtRendererArea' + rowId).appendTo(tdDividedIntoTwoTd[rowId]);
+              return tdAdded = tdAdded + 1;
+            } else if (tdAdded === 1) {
+              pivotTableTr1Td2[rowId] = $("<td>").attr("valign", "top").appendTo(addNewRow);
+              tdDividedIntoTwoTd[rowId] = $("<tr>").appendTo(pivotTableTr1Td2[rowId]);
+              rendererControl[rowId] = $("<td>").attr("valign", "top").appendTo(tdDividedIntoTwoTd[rowId]);
+              renderer[rowId] = $("<select>").addClass('pvtRenderer' + rowId).appendTo(rendererControl[rowId]).bind("change", function() {
+                selectOptions('pvtRenderer' + rowId);
+                return refreshPlot(rowId);
+              });
+              ref2 = opts.renderers;
+              for (x in ref2) {
+                if (!hasProp.call(ref2, x)) continue;
+                $("<option>").val(x).html(x).appendTo(renderer[rowId]);
+              }
+              pivotTableTr1Td2[rowId] = $("<td>").attr("valign", "top").addClass('pvtRendererArea').appendTo(tdDividedIntoTwoTd[rowId]);
+              return tdAdded = 0;
+            }
+          };
+        })(this);
+        $('#addslice').click(addNewSlice);
+        refreshDelayedPlot = (function(_this) {
+          return function(rowId) {
+            var exclusions, inclusions, initialRender, len2, n, newDropdown, numInputsToProcess, o, pivotUIOptions, pvtVals, ref1, ref2, subopts, unusedAttrsContainer, vals;
             subopts = {
               derivedAttributes: opts.derivedAttributes,
               localeStrings: opts.localeStrings,
@@ -1521,7 +1538,7 @@
               rows: [],
               dataClass: opts.dataClass
             };
-            numInputsToProcess = (ref4 = opts.aggregators[aggregator.val()]([])().numInputs) != null ? ref4 : 0;
+            numInputsToProcess = (ref1 = opts.aggregators[aggregator.val()]([])().numInputs) != null ? ref1 : 0;
             vals = [];
             _this.find(".pvtRows li span.pvtAttr").each(function() {
               return subopts.rows.push($(this).data("attrName"));
@@ -1541,12 +1558,12 @@
             });
             if (numInputsToProcess !== 0) {
               pvtVals = _this.find(".pvtVals");
-              for (x = t = 0, ref5 = numInputsToProcess; 0 <= ref5 ? t < ref5 : t > ref5; x = 0 <= ref5 ? ++t : --t) {
+              for (x = n = 0, ref2 = numInputsToProcess; 0 <= ref2 ? n < ref2 : n > ref2; x = 0 <= ref2 ? ++n : --n) {
                 newDropdown = $("<select>").addClass('pvtAttrDropdown').append($("<option>")).bind("change", function() {
                   return refresh();
                 });
-                for (u = 0, len4 = shownAttributes.length; u < len4; u++) {
-                  attr = shownAttributes[u];
+                for (o = 0, len2 = shownAttributes.length; o < len2; o++) {
+                  attr = shownAttributes[o];
                   newDropdown.append($("<option>").val(attr).text(attr));
                 }
                 pvtVals.append(newDropdown);
@@ -1564,7 +1581,7 @@
             subopts.aggregatorName = aggregator.val();
             subopts.vals = vals;
             subopts.aggregator = opts.aggregators[aggregator.val()](vals);
-            subopts.renderer = opts.renderers[renderer.val()];
+            subopts.renderer = opts.renderers[renderer[rowId].val()];
             subopts.rowOrder = rowOrderArrow.data("order");
             subopts.colOrder = colOrderArrow.data("order");
             exclusions = {};
@@ -1590,19 +1607,19 @@
               }
             });
             subopts.filter = function(record) {
-              var excludedItems, k, ref6, ref7;
+              var excludedItems, k, ref3, ref4;
               if (!opts.filter(record)) {
                 return false;
               }
               for (k in exclusions) {
                 excludedItems = exclusions[k];
-                if (ref6 = "" + ((ref7 = record[k]) != null ? ref7 : 'null'), indexOf.call(excludedItems, ref6) >= 0) {
+                if (ref3 = "" + ((ref4 = record[k]) != null ? ref4 : 'null'), indexOf.call(excludedItems, ref3) >= 0) {
                   return false;
                 }
               }
               return true;
             };
-            pivotTable.pivot(materializedInput, subopts);
+            pivotTableTr1Td2[rowId].pivot(materializedInput, subopts);
             pivotUIOptions = $.extend({}, opts, {
               cols: subopts.cols,
               rows: subopts.rows,
@@ -1613,7 +1630,7 @@
               inclusions: inclusions,
               inclusionsInfo: inclusions,
               aggregatorName: aggregator.val(),
-              rendererName: renderer.val()
+              rendererName: renderer[rowId].val()
             });
             _this.data("pivotUIOptions", pivotUIOptions);
             if (opts.autoSortUnusedAttrs) {
@@ -1622,16 +1639,55 @@
                 return naturalSort($(a).text(), $(b).text());
               }).appendTo(unusedAttrsContainer);
             }
-            pivotTable.css("opacity", 1);
+            pivotTableTr1Td2[rowId].css("opacity", 1);
             if (opts.onRefresh != null) {
               return opts.onRefresh(pivotUIOptions);
             }
           };
         })(this);
+        refreshPlot = (function(_this) {
+          return function(rowId) {
+            pivotTableTr1Td2[rowId].css("opacity", 0.5);
+            return setTimeout(refreshDelayedPlot(rowId), 10);
+          };
+        })(this);
+        if (opts.unusedAttrsVertical === true || unusedAttrsVerticalAutoOverride) {
+          uiTable.find('tr:nth-child(2)').prepend(unused);
+        } else {
+          uiTable.prepend($("<tr>").append(unused));
+        }
+        this.html(uiTable);
+        ref1 = opts.cols;
+        for (n = 0, len2 = ref1.length; n < len2; n++) {
+          x = ref1[n];
+          this.find(".pvtCols").append(this.find(".axis_" + ($.inArray(x, shownAttributes))));
+        }
+        ref2 = opts.rows;
+        for (o = 0, len3 = ref2.length; o < len3; o++) {
+          x = ref2[o];
+          this.find(".pvtRows").append(this.find(".axis_" + ($.inArray(x, shownAttributes))));
+        }
+        if (opts.aggregatorName != null) {
+          this.find(".pvtAggregator").val(opts.aggregatorName);
+        }
+        selectOptions = (function(_this) {
+          return function(className) {
+            if (opts.rendererName != null) {
+              return _this.find(className).val(opts.rendererName);
+            }
+          };
+        })(this);
+        initialRender = true;
         refresh = (function(_this) {
           return function() {
-            pivotTable.css("opacity", 0.5);
-            return setTimeout(refreshDelayed, 10);
+            var len4, results, rowId, t;
+            results = [];
+            for (t = 0, len4 = rowIds.length; t < len4; t++) {
+              rowId = rowIds[t];
+              pivotTableTr1Td2[rowId].css("opacity", 0.5);
+              results.push(refreshDelayedPlot(rowId));
+            }
+            return results;
           };
         })(this);
         refresh();
@@ -1645,8 +1701,8 @@
           items: 'li',
           placeholder: 'pvtPlaceholder'
         });
-      } catch (_error) {
-        e = _error;
+      } catch (error) {
+        e = error;
         if (typeof console !== "undefined" && console !== null) {
           console.error(e.stack);
         }

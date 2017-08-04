@@ -703,17 +703,6 @@ callWithJQuery ($) ->
             #start building the output
             uiTable = $("<table>", "class": "pvtUi").attr("cellpadding", 5)
 
-            #renderer control
-            rendererControl = $("<td>")
-
-            renderer = $("<select>")
-                .addClass('pvtRenderer')
-                .appendTo(rendererControl)
-                .bind "change", -> refresh() #capture reference
-            for own x of opts.renderers
-                $("<option>").val(x).html(x).appendTo(renderer)
-
-
             #axis list, including the double-click menu
             unused = $("<td>").addClass('pvtAxisContainer pvtUnused')
             shownAttributes = (a for a of attrValues when a not in opts.hiddenAttributes)
@@ -893,34 +882,83 @@ callWithJQuery ($) ->
             #the actual pivot table container
             pivotTable = $("<td>")
                 .attr("valign", "top")
-                .addClass('pvtRendererArea')
                 .appendTo(tr2)
 
-            #finally the renderer dropdown and unused attribs are inserted at the requested location
-            if opts.unusedAttrsVertical == true or unusedAttrsVerticalAutoOverride
-                uiTable.find('tr:nth-child(1)').prepend rendererControl
-                uiTable.find('tr:nth-child(2)').prepend unused
-            else
-                uiTable.prepend $("<tr>").append(rendererControl).append(unused)
+            #  New customization by Ruchita
 
-            #render the UI in its default state
-            @html uiTable
+            tdAdded = 0
+            addNewRow = null
+            pivotTableTr1Td1 = []
+            tdDividedIntoTwoTd = []
+            rendererControl = []
+            renderer = []
+            pivotTableTr1Td2 = []
+            rowIds = []
 
-            #set up the UI initial state as requested by moving elements around
+            addNewSlice = () =>
+                rowId = Date.now() # row id 
+                rowIds.push(rowId) # for refreshing on group by feature
+                console.log(rowIds)
+                if tdAdded == 0
+                    addNewRow = $("<tr>")
+                    addNewRowInsidePivotTable = $("<tr>").appendTo(pivotTable)
+                    pivotTableTr1Td1[rowId] = $("<td>")
+                    .attr("valign", "top")
+                    .appendTo(addNewRowInsidePivotTable)
+                    tdDividedIntoTwoTd[rowId] = addNewRow.appendTo(pivotTableTr1Td1[rowId]) # row add kardi
 
-            for x in opts.cols
-                @find(".pvtCols").append @find(".axis_#{$.inArray(x, shownAttributes)}")
-            for x in opts.rows
-                @find(".pvtRows").append @find(".axis_#{$.inArray(x, shownAttributes)}")
-            if opts.aggregatorName?
-                @find(".pvtAggregator").val opts.aggregatorName
-            if opts.rendererName?
-                @find(".pvtRenderer").val opts.rendererName
+                    rendererControl[rowId] = $("<td>")
+                    .attr("valign", "top")
+                    .appendTo(tdDividedIntoTwoTd[rowId])
 
-            initialRender = true
+                    renderer[rowId] = $("<select>")
+                        .addClass('pvtRenderer' + rowId)
+                        .appendTo(rendererControl[rowId])
+                        .bind "change", ->
+                            selectOptions('pvtRenderer' + rowId)
+                            refreshPlot(rowId) #capture reference
+                    for own x of opts.renderers
+                        $("<option>").val(x).html(x).appendTo(renderer[rowId])
+                    #the actual pivot table container
+                    pivotTableTr1Td2[rowId] = $("<td>")
+                        .attr("valign", "top")
+                        .addClass('pvtRendererArea' + rowId)
+                        .appendTo(tdDividedIntoTwoTd[rowId])
+                        
+                    tdAdded = tdAdded + 1
+
+                else if tdAdded == 1
+                    pivotTableTr1Td2[rowId] = $("<td>")
+                    .attr("valign", "top")
+                    .appendTo(addNewRow)
+                    tdDividedIntoTwoTd[rowId] = $("<tr>").appendTo(pivotTableTr1Td2[rowId])
+                    rendererControl[rowId] = $("<td>")
+                    .attr("valign", "top")
+                    .appendTo(tdDividedIntoTwoTd[rowId])
+                    renderer[rowId] = $("<select>")
+                        .addClass('pvtRenderer' + rowId)
+                        .appendTo(rendererControl[rowId])
+                        .bind "change", ->
+                            selectOptions('pvtRenderer' + rowId)
+                            refreshPlot(rowId) #capture reference
+                    for own x of opts.renderers
+                        $("<option>").val(x).html(x).appendTo(renderer[rowId])
+
+                    #the actual pivot table container
+                    pivotTableTr1Td2[rowId] = $("<td>")
+                        .attr("valign", "top")
+                        .addClass('pvtRendererArea')
+                        .appendTo(tdDividedIntoTwoTd[rowId])
+                    tdAdded = 0
+
+
+            $('#addslice').click(addNewSlice)
+
+
+            # End customization
 
             #set up for refreshing
-            refreshDelayed = =>
+            refreshDelayedPlot = (rowId) =>
                 subopts =
                     derivedAttributes: opts.derivedAttributes
                     localeStrings: opts.localeStrings
@@ -962,7 +1000,7 @@ callWithJQuery ($) ->
                 subopts.aggregatorName = aggregator.val()
                 subopts.vals = vals
                 subopts.aggregator = opts.aggregators[aggregator.val()](vals)
-                subopts.renderer = opts.renderers[renderer.val()]
+                subopts.renderer = opts.renderers[renderer[rowId].val()]
                 subopts.rowOrder = rowOrderArrow.data("order")
                 subopts.colOrder = colOrderArrow.data("order")
                 #construct filter here
@@ -989,7 +1027,7 @@ callWithJQuery ($) ->
                         return false if ""+(record[k] ? 'null') in excludedItems
                     return true
 
-                pivotTable.pivot(materializedInput,subopts)
+                pivotTableTr1Td2[rowId].pivot(materializedInput,subopts)
                 pivotUIOptions = $.extend {}, opts,
                     cols: subopts.cols
                     rows: subopts.rows
@@ -1000,7 +1038,7 @@ callWithJQuery ($) ->
                     inclusions: inclusions
                     inclusionsInfo: inclusions #duplicated for backwards-compatibility
                     aggregatorName: aggregator.val()
-                    rendererName: renderer.val()
+                    rendererName: renderer[rowId].val()
 
                 @data "pivotUIOptions", pivotUIOptions
 
@@ -1011,12 +1049,46 @@ callWithJQuery ($) ->
                         .sort((a, b) => naturalSort($(a).text(), $(b).text()))
                         .appendTo unusedAttrsContainer
 
-                pivotTable.css("opacity", 1)
+                pivotTableTr1Td2[rowId].css("opacity", 1)
                 opts.onRefresh(pivotUIOptions) if opts.onRefresh?
 
-            refresh = =>
-                pivotTable.css("opacity", 0.5)
-                setTimeout refreshDelayed, 10
+            # for refreshing a individual plot   
+            refreshPlot = (rowId) =>
+                pivotTableTr1Td2[rowId].css("opacity", 0.5)
+                setTimeout refreshDelayedPlot(rowId), 10
+
+
+
+            #finally the renderer dropdown and unused attribs are inserted at the requested location
+            if opts.unusedAttrsVertical == true or unusedAttrsVerticalAutoOverride
+                # uiTable.find('tr:nth-child(1)').prepend rendererControl
+                uiTable.find('tr:nth-child(2)').prepend unused
+            else
+                uiTable.prepend $("<tr>").append(unused)
+
+            #render the UI in its default state
+            @html uiTable
+
+            #set up the UI initial state as requested by moving elements around
+
+            for x in opts.cols
+                @find(".pvtCols").append @find(".axis_#{$.inArray(x, shownAttributes)}")
+            for x in opts.rows
+                @find(".pvtRows").append @find(".axis_#{$.inArray(x, shownAttributes)}")
+            if opts.aggregatorName?
+                @find(".pvtAggregator").val opts.aggregatorName
+            
+            selectOptions = (className) =>
+                if opts.rendererName?
+                    @find(className).val opts.rendererName
+
+            initialRender = true
+
+            # for refreshing on global feature
+            refresh = () =>
+                for rowId in rowIds
+                    pivotTableTr1Td2[rowId].css("opacity", 0.5)
+                    refreshDelayedPlot(rowId)
 
             #the very first refresh will actually display the table
             refresh()
