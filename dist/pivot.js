@@ -1188,8 +1188,8 @@
     /*
     Pivot Table UI: calls Pivot Table core above with options set by user
      */
-    return $.fn.pivotUI = function(input, inputOpts, overwrite, locale) {
-      var a, addNewRow, addNewSlice, aggregator, attr, attrLength, attrValues, colOrderArrow, defaults, e, existingOpts, fn1, i, initialRender, l, len1, len2, len3, localeDefaults, localeStrings, materializedInput, n, o, opts, ordering, pivotTable, pivotTableTr1Td1, pivotTableTr1Td2, recordsProcessed, ref, ref1, ref2, refresh, refresh1, refreshDelayed, refreshDelayed1, refreshPlot, renderer, rendererControl, rowOrderArrow, selectOptions, shownAttributes, tdAdded, tdDividedIntoTwoTd, tr1, tr2, uiTable, unused, unusedAttrsVerticalAutoCutoff, unusedAttrsVerticalAutoOverride, x;
+    $.fn.pivotUI = function(input, inputOpts, overwrite, locale) {
+      var a, addNewRow, addNewSlice, aggregator, attr, attrLength, attrValues, colOrderArrow, defaults, e, existingOpts, fn1, i, initialRender, l, len1, len2, len3, localeDefaults, localeStrings, materializedInput, n, o, opts, ordering, pivotTable, pivotTableTr1Td1, pivotTableTr1Td2, recordsProcessed, ref, ref1, ref2, refresh, refreshDelayedPlot, refreshPlot, renderer, rendererControl, rowIds, rowOrderArrow, selectOptions, shownAttributes, tdAdded, tdDividedIntoTwoTd, tr1, tr2, uiTable, unused, unusedAttrsVerticalAutoCutoff, unusedAttrsVerticalAutoOverride, x;
       if (overwrite == null) {
         overwrite = false;
       }
@@ -1483,10 +1483,13 @@
         rendererControl = [];
         renderer = [];
         pivotTableTr1Td2 = [];
+        rowIds = [];
         addNewSlice = (function(_this) {
           return function() {
             var addNewRowInsidePivotTable, ref1, ref2, rowId;
             rowId = Date.now();
+            rowIds.push(rowId);
+            console.log(rowIds);
             if (tdAdded === 0) {
               addNewRow = $("<tr>");
               addNewRowInsidePivotTable = $("<tr>").appendTo(pivotTable);
@@ -1523,10 +1526,9 @@
           };
         })(this);
         $('#addslice').click(addNewSlice);
-        refreshDelayed = (function(_this) {
-          return function() {
+        refreshDelayedPlot = (function(_this) {
+          return function(rowId) {
             var exclusions, inclusions, initialRender, len2, n, newDropdown, numInputsToProcess, o, pivotUIOptions, pvtVals, ref1, ref2, subopts, unusedAttrsContainer, vals;
-            console.log("vdbhbvhfvh");
             subopts = {
               derivedAttributes: opts.derivedAttributes,
               localeStrings: opts.localeStrings,
@@ -1617,134 +1619,6 @@
               }
               return true;
             };
-            pivotTableTr1Td2.pivot(materializedInput, subopts);
-            pivotUIOptions = $.extend({}, opts, {
-              cols: subopts.cols,
-              rows: subopts.rows,
-              colOrder: subopts.colOrder,
-              rowOrder: subopts.rowOrder,
-              vals: vals,
-              exclusions: exclusions,
-              inclusions: inclusions,
-              inclusionsInfo: inclusions,
-              aggregatorName: aggregator.val(),
-              rendererName: renderer[rowId].val()
-            });
-            _this.data("pivotUIOptions", pivotUIOptions);
-            if (opts.autoSortUnusedAttrs) {
-              unusedAttrsContainer = _this.find("td.pvtUnused.pvtAxisContainer");
-              $(unusedAttrsContainer).children("li").sort(function(a, b) {
-                return naturalSort($(a).text(), $(b).text());
-              }).appendTo(unusedAttrsContainer);
-            }
-            pivotTableTr1Td2.css("opacity", 1);
-            if (opts.onRefresh != null) {
-              return opts.onRefresh(pivotUIOptions);
-            }
-          };
-        })(this);
-        refreshPlot = (function(_this) {
-          return function(rowId) {
-            pivotTableTr1Td2[rowId].css("opacity", 0.5);
-            console.log("here");
-            return refreshDelayed1(rowId);
-          };
-        })(this);
-        refreshDelayed1 = (function(_this) {
-          return function(rowId) {
-            var exclusions, inclusions, initialRender, len2, n, newDropdown, numInputsToProcess, o, pivotUIOptions, pvtVals, ref1, ref2, subopts, unusedAttrsContainer, vals;
-            console.log("vdbhbvhfvh");
-            subopts = {
-              derivedAttributes: opts.derivedAttributes,
-              localeStrings: opts.localeStrings,
-              rendererOptions: opts.rendererOptions,
-              sorters: opts.sorters,
-              cols: [],
-              rows: [],
-              dataClass: opts.dataClass
-            };
-            numInputsToProcess = (ref1 = opts.aggregators[aggregator.val()]([])().numInputs) != null ? ref1 : 0;
-            vals = [];
-            _this.find(".pvtRows li span.pvtAttr").each(function() {
-              return subopts.rows.push($(this).data("attrName"));
-            });
-            _this.find(".pvtCols li span.pvtAttr").each(function() {
-              return subopts.cols.push($(this).data("attrName"));
-            });
-            _this.find(".pvtVals select.pvtAttrDropdown").each(function() {
-              if (numInputsToProcess === 0) {
-                return $(this).remove();
-              } else {
-                numInputsToProcess--;
-                if ($(this).val() !== "") {
-                  return vals.push($(this).val());
-                }
-              }
-            });
-            if (numInputsToProcess !== 0) {
-              pvtVals = _this.find(".pvtVals");
-              for (x = n = 0, ref2 = numInputsToProcess; 0 <= ref2 ? n < ref2 : n > ref2; x = 0 <= ref2 ? ++n : --n) {
-                newDropdown = $("<select>").addClass('pvtAttrDropdown').append($("<option>")).bind("change", function() {
-                  return refresh();
-                });
-                for (o = 0, len2 = shownAttributes.length; o < len2; o++) {
-                  attr = shownAttributes[o];
-                  newDropdown.append($("<option>").val(attr).text(attr));
-                }
-                pvtVals.append(newDropdown);
-              }
-            }
-            if (initialRender) {
-              vals = opts.vals;
-              i = 0;
-              _this.find(".pvtVals select.pvtAttrDropdown").each(function() {
-                $(this).val(vals[i]);
-                return i++;
-              });
-              initialRender = false;
-            }
-            subopts.aggregatorName = aggregator.val();
-            subopts.vals = vals;
-            subopts.aggregator = opts.aggregators[aggregator.val()](vals);
-            subopts.renderer = opts.renderers[renderer[rowId].val()];
-            subopts.rowOrder = rowOrderArrow.data("order");
-            subopts.colOrder = colOrderArrow.data("order");
-            exclusions = {};
-            _this.find('input.pvtFilter').not(':checked').each(function() {
-              var filter;
-              filter = $(this).data("filter");
-              if (exclusions[filter[0]] != null) {
-                return exclusions[filter[0]].push(filter[1]);
-              } else {
-                return exclusions[filter[0]] = [filter[1]];
-              }
-            });
-            inclusions = {};
-            _this.find('input.pvtFilter:checked').each(function() {
-              var filter;
-              filter = $(this).data("filter");
-              if (exclusions[filter[0]] != null) {
-                if (inclusions[filter[0]] != null) {
-                  return inclusions[filter[0]].push(filter[1]);
-                } else {
-                  return inclusions[filter[0]] = [filter[1]];
-                }
-              }
-            });
-            subopts.filter = function(record) {
-              var excludedItems, k, ref3, ref4;
-              if (!opts.filter(record)) {
-                return false;
-              }
-              for (k in exclusions) {
-                excludedItems = exclusions[k];
-                if (ref3 = "" + ((ref4 = record[k]) != null ? ref4 : 'null'), indexOf.call(excludedItems, ref3) >= 0) {
-                  return false;
-                }
-              }
-              return true;
-            };
-            console.log(subopts);
             pivotTableTr1Td2[rowId].pivot(materializedInput, subopts);
             pivotUIOptions = $.extend({}, opts, {
               cols: subopts.cols,
@@ -1771,10 +1645,10 @@
             }
           };
         })(this);
-        refresh1 = (function(_this) {
-          return function() {
-            pivotTableTr1Td2.css("opacity", 0.5);
-            return setTimeout(refreshDelayed1, 10);
+        refreshPlot = (function(_this) {
+          return function(rowId) {
+            pivotTableTr1Td2[rowId].css("opacity", 0.5);
+            return setTimeout(refreshDelayedPlot(rowId), 10);
           };
         })(this);
         if (opts.unusedAttrsVertical === true || unusedAttrsVerticalAutoOverride) {
@@ -1804,11 +1678,17 @@
           };
         })(this);
         initialRender = true;
-        refreshDelayed = (function(_this) {
-          return function() {};
-        })(this);
         refresh = (function(_this) {
-          return function() {};
+          return function() {
+            var len4, results, rowId, t;
+            results = [];
+            for (t = 0, len4 = rowIds.length; t < len4; t++) {
+              rowId = rowIds[t];
+              pivotTableTr1Td2[rowId].css("opacity", 0.5);
+              results.push(refreshDelayedPlot(rowId));
+            }
+            return results;
+          };
         })(this);
         refresh();
         this.find(".pvtAxisContainer").sortable({
@@ -1834,10 +1714,128 @@
     /*
     Heatmap post-processing
      */
+    $.fn.heatmap = function(scope, opts) {
+      var colorScaleGenerator, heatmapper, i, j, l, n, numCols, numRows, ref, ref1, ref2;
+      if (scope == null) {
+        scope = "heatmap";
+      }
+      numRows = this.data("numrows");
+      numCols = this.data("numcols");
+      colorScaleGenerator = opts != null ? (ref = opts.heatmap) != null ? ref.colorScaleGenerator : void 0 : void 0;
+      if (colorScaleGenerator == null) {
+        colorScaleGenerator = function(values) {
+          var max, min;
+          min = Math.min.apply(Math, values);
+          max = Math.max.apply(Math, values);
+          return function(x) {
+            var nonRed;
+            nonRed = 255 - Math.round(255 * (x - min) / (max - min));
+            return "rgb(255," + nonRed + "," + nonRed + ")";
+          };
+        };
+      }
+      heatmapper = (function(_this) {
+        return function(scope) {
+          var colorScale, forEachCell, values;
+          forEachCell = function(f) {
+            return _this.find(scope).each(function() {
+              var x;
+              x = $(this).data("value");
+              if ((x != null) && isFinite(x)) {
+                return f(x, $(this));
+              }
+            });
+          };
+          values = [];
+          forEachCell(function(x) {
+            return values.push(x);
+          });
+          colorScale = colorScaleGenerator(values);
+          return forEachCell(function(x, elem) {
+            return elem.css("background-color", colorScale(x));
+          });
+        };
+      })(this);
+      switch (scope) {
+        case "heatmap":
+          heatmapper(".pvtVal");
+          break;
+        case "rowheatmap":
+          for (i = l = 0, ref1 = numRows; 0 <= ref1 ? l < ref1 : l > ref1; i = 0 <= ref1 ? ++l : --l) {
+            heatmapper(".pvtVal.row" + i);
+          }
+          break;
+        case "colheatmap":
+          for (j = n = 0, ref2 = numCols; 0 <= ref2 ? n < ref2 : n > ref2; j = 0 <= ref2 ? ++n : --n) {
+            heatmapper(".pvtVal.col" + j);
+          }
+      }
+      heatmapper(".pvtTotal.rowTotal");
+      heatmapper(".pvtTotal.colTotal");
+      return this;
+    };
 
     /*
     Barchart post-processing
      */
+    return $.fn.barchart = function() {
+      var barcharter, i, l, numCols, numRows, ref;
+      numRows = this.data("numrows");
+      numCols = this.data("numcols");
+      barcharter = (function(_this) {
+        return function(scope) {
+          var forEachCell, max, scaler, values;
+          forEachCell = function(f) {
+            return _this.find(scope).each(function() {
+              var x;
+              x = $(this).data("value");
+              if ((x != null) && isFinite(x)) {
+                return f(x, $(this));
+              }
+            });
+          };
+          values = [];
+          forEachCell(function(x) {
+            return values.push(x);
+          });
+          max = Math.max.apply(Math, values);
+          scaler = function(x) {
+            return 100 * x / (1.4 * max);
+          };
+          return forEachCell(function(x, elem) {
+            var text, wrapper;
+            text = elem.text();
+            wrapper = $("<div>").css({
+              "position": "relative",
+              "height": "55px"
+            });
+            wrapper.append($("<div>").css({
+              "position": "absolute",
+              "bottom": 0,
+              "left": 0,
+              "right": 0,
+              "height": scaler(x) + "%",
+              "background-color": "gray"
+            }));
+            wrapper.append($("<div>").text(text).css({
+              "position": "relative",
+              "padding-left": "5px",
+              "padding-right": "5px"
+            }));
+            return elem.css({
+              "padding": 0,
+              "padding-top": "5px",
+              "text-align": "center"
+            }).html(wrapper);
+          });
+        };
+      })(this);
+      for (i = l = 0, ref = numRows; 0 <= ref ? l < ref : l > ref; i = 0 <= ref ? ++l : --l) {
+        barcharter(".pvtVal.row" + i);
+      }
+      barcharter(".pvtTotal.colTotal");
+      return this;
+    };
   });
 
 }).call(this);

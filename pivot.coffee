@@ -703,19 +703,6 @@ callWithJQuery ($) ->
             #start building the output
             uiTable = $("<table>", "class": "pvtUi").attr("cellpadding", 5)
 
-            #renderer control
-            # rendererControl = $("<td>")
-
-            # yaha par dekhna hai global select options for making chart
-
-            # renderer = $("<select>")
-            #     .addClass('pvtRenderer')
-            #     .appendTo(rendererControl)
-            #     .bind "change", -> refresh() #capture reference
-            # for own x of opts.renderers
-            #     $("<option>").val(x).html(x).appendTo(renderer)
-
-
             #axis list, including the double-click menu
             unused = $("<td>").addClass('pvtAxisContainer pvtUnused')
             shownAttributes = (a for a of attrValues when a not in opts.hiddenAttributes)
@@ -895,46 +882,7 @@ callWithJQuery ($) ->
             #the actual pivot table container
             pivotTable = $("<td>")
                 .attr("valign", "top")
-                # .addClass('pvtRendererArea')
                 .appendTo(tr2)
-            
-            # pivotTableTr1 = $("<tr>").appendTo(pivotTable)
-
-            # #the actual pivot table container
-            # pivotTableTr1Td1 = $("<td>")
-            #     .attr("valign", "top")
-            #     # .addClass('pvtRendererArea')
-            #     .appendTo(pivotTableTr1)
-
-            # tdDividedIntoTwoTd = $("<tr>").appendTo(pivotTableTr1Td1)
-
-            # rendererControl = $("<td>")
-            #     .attr("valign", "top")
-            #     # .addClass('pvtRendererArea')
-            #     .appendTo(tdDividedIntoTwoTd)
-
-            # # tdDividedIntoTwoTd.append rendererControl
-
-            # #the actual pivot table container
-            # pivotTableTr1Td2 = $("<td>")
-            #     .attr("valign", "top")
-            #     .addClass('pvtRendererArea')
-            #     .appendTo(tdDividedIntoTwoTd)
-                
-            # renderer1 = $("<select>")
-            #     .addClass('pvtRenderer')
-            #     .appendTo(rendererControl)
-            #     .bind "change", ->
-            #         selectOptions('pvtRenderer')
-            #         # pivotTableTr1Td2.pivotUI()
-            #         console.log(materializedInput)
-            #         # refreshDelayed()
-            #         # pivotTableTr1Td2.pivot(materializedInput,null)
-            #         refresh1() #capture reference
-            # for own x of opts.renderers
-            #     $("<option>").val(x).html(x).appendTo(renderer1)
-
-            # renderer.append pivotTableTr1Td1
 
             #  New customization by Ruchita
 
@@ -945,14 +893,12 @@ callWithJQuery ($) ->
             rendererControl = []
             renderer = []
             pivotTableTr1Td2 = []
+            rowIds = []
 
             addNewSlice = () =>
-                # pivotTableTr1Td1 = []
-                # tdDividedIntoTwoTd = []
-                # rendererControl = []
-                # renderer = []
-                # pivotTableTr1Td2 = []
-                rowId = Date.now()
+                rowId = Date.now() # row id 
+                rowIds.push(rowId) # for refreshing on group by feature
+                console.log(rowIds)
                 if tdAdded == 0
                     addNewRow = $("<tr>")
                     addNewRowInsidePivotTable = $("<tr>").appendTo(pivotTable)
@@ -1011,47 +957,8 @@ callWithJQuery ($) ->
 
             # End customization
 
-
-            #  second plot
-            # secondTd = $("<td>")
-            #     .attr("valign", "top")
-            #     # .addClass('pvtRendererArea')
-            #     .appendTo(pivotTableTr1)
-
-            # tdDividedIntoTwoNewTd = $("<tr>").appendTo(secondTd)
-
-            # rendererControl2 = $("<td>")
-            #     .attr("valign", "top")
-            #     # .addClass('pvtRendererArea')
-            #     .appendTo(tdDividedIntoTwoNewTd)
-
-            # firstRowSecondTdSecondTd = $("<td>")
-            #     .attr("valign", "top")
-            #     .addClass('pvtRendererArea1')
-            #     .appendTo(tdDividedIntoTwoNewTd)
-
-            # renderer2 = $("<select>")
-            #     .addClass('pvtRenderer1')
-            #     .appendTo(rendererControl2)
-            #     .bind "change", -> 
-            #         selectOptions('pvtRenderer1')
-            #         # firstRowSecondTdSecondTd.pivotUI()
-            #         # refreshDelayed(firstRowSecondTdSecondTd)
-            #         # firstRowSecondTdSecondTd.pivot(materializedInput,null)
-            #         refresh2() #capture reference
-            # for own x of opts.renderers
-            #     $("<option>").val(x).html(x).appendTo(renderer2)
-
-            # #the actual pivot table container
-            # firstRowSecondTdSecondTd = $("<td>")
-            #     .attr("valign", "top")
-            #     .addClass('pvtRendererArea')
-            #     .appendTo(tdDividedIntoTwoNewTd)
-            
-
             #set up for refreshing
-            refreshDelayed = () =>
-                console.log("vdbhbvhfvh")
+            refreshDelayedPlot = (rowId) =>
                 subopts =
                     derivedAttributes: opts.derivedAttributes
                     localeStrings: opts.localeStrings
@@ -1120,9 +1027,7 @@ callWithJQuery ($) ->
                         return false if ""+(record[k] ? 'null') in excludedItems
                     return true
 
-                pivotTableTr1Td2.pivot(materializedInput,subopts)
-                # pivotTableTr1Td2.pivot(materializedInput,subopts)
-                # pivotTable.pivot(materializedInput,subopts)
+                pivotTableTr1Td2[rowId].pivot(materializedInput,subopts)
                 pivotUIOptions = $.extend {}, opts,
                     cols: subopts.cols
                     rows: subopts.rows
@@ -1144,137 +1049,13 @@ callWithJQuery ($) ->
                         .sort((a, b) => naturalSort($(a).text(), $(b).text()))
                         .appendTo unusedAttrsContainer
 
-                pivotTableTr1Td2.css("opacity", 1)
-                # pivotTableTr1Td2.css("opacity", 1)
-                # pivotTable.css("opacity", 1)
+                pivotTableTr1Td2[rowId].css("opacity", 1)
                 opts.onRefresh(pivotUIOptions) if opts.onRefresh?
 
+            # for refreshing a individual plot   
             refreshPlot = (rowId) =>
                 pivotTableTr1Td2[rowId].css("opacity", 0.5)
-                console.log("here")
-                refreshDelayed1(rowId)
-
-
-
-
-
-
-            #set up for refreshing
-            refreshDelayed1 = (rowId) =>
-                console.log("vdbhbvhfvh")
-                subopts =
-                    derivedAttributes: opts.derivedAttributes
-                    localeStrings: opts.localeStrings
-                    rendererOptions: opts.rendererOptions
-                    sorters: opts.sorters
-                    cols: [], rows: []
-                    dataClass: opts.dataClass
-
-                numInputsToProcess = opts.aggregators[aggregator.val()]([])().numInputs ? 0
-                vals = []
-                @find(".pvtRows li span.pvtAttr").each -> subopts.rows.push $(this).data("attrName")
-                @find(".pvtCols li span.pvtAttr").each -> subopts.cols.push $(this).data("attrName")
-                @find(".pvtVals select.pvtAttrDropdown").each ->
-                    if numInputsToProcess == 0
-                        $(this).remove()
-                    else
-                        numInputsToProcess--
-                        vals.push $(this).val() if $(this).val() != ""
-
-                if numInputsToProcess != 0
-                    pvtVals = @find(".pvtVals")
-                    for x in [0...numInputsToProcess]
-                        newDropdown = $("<select>")
-                            .addClass('pvtAttrDropdown')
-                            .append($("<option>"))
-                            .bind "change", -> refresh()
-                        for attr in shownAttributes
-                            newDropdown.append($("<option>").val(attr).text(attr))
-                        pvtVals.append(newDropdown)
-
-                if initialRender
-                    vals = opts.vals
-                    i = 0
-                    @find(".pvtVals select.pvtAttrDropdown").each ->
-                        $(this).val vals[i]
-                        i++
-                    initialRender = false
-
-                subopts.aggregatorName = aggregator.val()
-                subopts.vals = vals
-                subopts.aggregator = opts.aggregators[aggregator.val()](vals)
-                subopts.renderer = opts.renderers[renderer[rowId].val()]
-                subopts.rowOrder = rowOrderArrow.data("order")
-                subopts.colOrder = colOrderArrow.data("order")
-                #construct filter here
-                exclusions = {}
-                @find('input.pvtFilter').not(':checked').each ->
-                    filter = $(this).data("filter")
-                    if exclusions[filter[0]]?
-                        exclusions[filter[0]].push( filter[1] )
-                    else
-                        exclusions[filter[0]] = [ filter[1] ]
-                #include inclusions when exclusions present
-                inclusions = {}
-                @find('input.pvtFilter:checked').each ->
-                    filter = $(this).data("filter")
-                    if exclusions[filter[0]]?
-                        if inclusions[filter[0]]?
-                            inclusions[filter[0]].push( filter[1] )
-                        else
-                            inclusions[filter[0]] = [ filter[1] ]
-
-                subopts.filter = (record) ->
-                    return false if not opts.filter(record)
-                    for k,excludedItems of exclusions
-                        return false if ""+(record[k] ? 'null') in excludedItems
-                    return true
-
-                # firstRowSecondTdSecondTd.pivot(materializedInput,subopts)
-                console.log(subopts)
-                pivotTableTr1Td2[rowId].pivot(materializedInput,subopts)
-                # pivotTable.pivot(materializedInput,subopts)
-                pivotUIOptions = $.extend {}, opts,
-                    cols: subopts.cols
-                    rows: subopts.rows
-                    colOrder: subopts.colOrder
-                    rowOrder: subopts.rowOrder
-                    vals: vals
-                    exclusions: exclusions
-                    inclusions: inclusions
-                    inclusionsInfo: inclusions #duplicated for backwards-compatibility
-                    aggregatorName: aggregator.val()
-                    rendererName: renderer[rowId].val()
-
-                @data "pivotUIOptions", pivotUIOptions
-
-                # if requested make sure unused columns are in alphabetical order
-                if opts.autoSortUnusedAttrs
-                    unusedAttrsContainer = @find("td.pvtUnused.pvtAxisContainer")
-                    $(unusedAttrsContainer).children("li")
-                        .sort((a, b) => naturalSort($(a).text(), $(b).text()))
-                        .appendTo unusedAttrsContainer
-
-                # firstRowSecondTdSecondTd.css("opacity", 1)
-                pivotTableTr1Td2[rowId].css("opacity", 1)
-                # pivotTable.css("opacity", 1)
-                opts.onRefresh(pivotUIOptions) if opts.onRefresh?
-
-            refresh1 = =>
-                # firstRowSecondTdSecondTd.css("opacity", 0.5)
-                pivotTableTr1Td2.css("opacity", 0.5)
-                # pivotTable.css("opacity", 0.5)
-                setTimeout refreshDelayed1, 10
-
-
-
-
-
-
-
-
-
-
+                setTimeout refreshDelayedPlot(rowId), 10
 
 
 
@@ -1303,112 +1084,11 @@ callWithJQuery ($) ->
 
             initialRender = true
 
-            #set up for refreshing
-            refreshDelayed = () =>
-                # console.log("do not disturb")
-                # subopts =
-                #     derivedAttributes: opts.derivedAttributes
-                #     localeStrings: opts.localeStrings
-                #     rendererOptions: opts.rendererOptions
-                #     sorters: opts.sorters
-                #     cols: [], rows: []
-                #     dataClass: opts.dataClass
-
-                # numInputsToProcess = opts.aggregators[aggregator.val()]([])().numInputs ? 0
-                # vals = []
-                # @find(".pvtRows li span.pvtAttr").each -> subopts.rows.push $(this).data("attrName")
-                # @find(".pvtCols li span.pvtAttr").each -> subopts.cols.push $(this).data("attrName")
-                # @find(".pvtVals select.pvtAttrDropdown").each ->
-                #     if numInputsToProcess == 0
-                #         $(this).remove()
-                #     else
-                #         numInputsToProcess--
-                #         vals.push $(this).val() if $(this).val() != ""
-
-                # if numInputsToProcess != 0
-                #     pvtVals = @find(".pvtVals")
-                #     for x in [0...numInputsToProcess]
-                #         newDropdown = $("<select>")
-                #             .addClass('pvtAttrDropdown')
-                #             .append($("<option>"))
-                #             .bind "change", -> refresh()
-                #         for attr in shownAttributes
-                #             newDropdown.append($("<option>").val(attr).text(attr))
-                #         pvtVals.append(newDropdown)
-
-                # if initialRender
-                #     vals = opts.vals
-                #     i = 0
-                #     @find(".pvtVals select.pvtAttrDropdown").each ->
-                #         $(this).val vals[i]
-                #         i++
-                #     initialRender = false
-
-                # subopts.aggregatorName = aggregator.val()
-                # subopts.vals = vals
-                # subopts.aggregator = opts.aggregators[aggregator.val()](vals)
-                # console.log(opts.renderers[renderer.val()])
-                # subopts.renderer = opts.renderers[renderer.val()]
-                # subopts.rowOrder = rowOrderArrow.data("order")
-                # subopts.colOrder = colOrderArrow.data("order")
-                # #construct filter here
-                # exclusions = {}
-                # @find('input.pvtFilter').not(':checked').each ->
-                #     filter = $(this).data("filter")
-                #     if exclusions[filter[0]]?
-                #         exclusions[filter[0]].push( filter[1] )
-                #     else
-                #         exclusions[filter[0]] = [ filter[1] ]
-                # #include inclusions when exclusions present
-                # inclusions = {}
-                # @find('input.pvtFilter:checked').each ->
-                #     filter = $(this).data("filter")
-                #     if exclusions[filter[0]]?
-                #         if inclusions[filter[0]]?
-                #             inclusions[filter[0]].push( filter[1] )
-                #         else
-                #             inclusions[filter[0]] = [ filter[1] ]
-
-                # subopts.filter = (record) ->
-                #     return false if not opts.filter(record)
-                #     for k,excludedItems of exclusions
-                #         return false if ""+(record[k] ? 'null') in excludedItems
-                #     return true
-
-                # firstRowSecondTdSecondTd.pivot(materializedInput,subopts)
-                # pivotTableTr1Td2.pivot(materializedInput,subopts)
-                # # pivotTable.pivot(materializedInput,subopts)
-                # pivotUIOptions = $.extend {}, opts,
-                #     cols: subopts.cols
-                #     rows: subopts.rows
-                #     colOrder: subopts.colOrder
-                #     rowOrder: subopts.rowOrder
-                #     vals: vals
-                #     exclusions: exclusions
-                #     inclusions: inclusions
-                #     inclusionsInfo: inclusions #duplicated for backwards-compatibility
-                #     aggregatorName: aggregator.val()
-                #     rendererName: renderer.val()
-
-                # @data "pivotUIOptions", pivotUIOptions
-
-                # # if requested make sure unused columns are in alphabetical order
-                # if opts.autoSortUnusedAttrs
-                #     unusedAttrsContainer = @find("td.pvtUnused.pvtAxisContainer")
-                #     $(unusedAttrsContainer).children("li")
-                #         .sort((a, b) => naturalSort($(a).text(), $(b).text()))
-                #         .appendTo unusedAttrsContainer
-
-                # firstRowSecondTdSecondTd.css("opacity", 1)
-                # pivotTableTr1Td2.css("opacity", 1)
-                # # pivotTable.css("opacity", 1)
-                # opts.onRefresh(pivotUIOptions) if opts.onRefresh?
-
-            refresh = =>
-                # firstRowSecondTdSecondTd.css("opacity", 0.5)
-                # pivotTableTr1Td2.css("opacity", 0.5)
-                # pivotTable.css("opacity", 0.5)
-                # setTimeout refreshDelayed, 10
+            # for refreshing on global feature
+            refresh = () =>
+                for rowId in rowIds
+                    pivotTableTr1Td2[rowId].css("opacity", 0.5)
+                    refreshDelayedPlot(rowId)
 
             #the very first refresh will actually display the table
             refresh()
@@ -1427,79 +1107,79 @@ callWithJQuery ($) ->
     Heatmap post-processing
     ###
 
-    # $.fn.heatmap = (scope = "heatmap", opts) ->
-    #     numRows = @data "numrows"
-    #     numCols = @data "numcols"
+    $.fn.heatmap = (scope = "heatmap", opts) ->
+        numRows = @data "numrows"
+        numCols = @data "numcols"
 
-    #     # given a series of values
-    #     # must return a function to map a given value to a CSS color
-    #     colorScaleGenerator = opts?.heatmap?.colorScaleGenerator
-    #     colorScaleGenerator ?= (values) ->
-    #         min = Math.min(values...)
-    #         max = Math.max(values...)
-    #         return (x) ->
-    #             nonRed = 255 - Math.round 255*(x-min)/(max-min)
-    #             return "rgb(255,#{nonRed},#{nonRed})"
+        # given a series of values
+        # must return a function to map a given value to a CSS color
+        colorScaleGenerator = opts?.heatmap?.colorScaleGenerator
+        colorScaleGenerator ?= (values) ->
+            min = Math.min(values...)
+            max = Math.max(values...)
+            return (x) ->
+                nonRed = 255 - Math.round 255*(x-min)/(max-min)
+                return "rgb(255,#{nonRed},#{nonRed})"
 
-    #     heatmapper = (scope) =>
-    #         forEachCell = (f) =>
-    #             @find(scope).each ->
-    #                 x = $(this).data("value")
-    #                 f(x, $(this)) if x? and isFinite(x)
+        heatmapper = (scope) =>
+            forEachCell = (f) =>
+                @find(scope).each ->
+                    x = $(this).data("value")
+                    f(x, $(this)) if x? and isFinite(x)
 
-    #         values = []
-    #         forEachCell (x) -> values.push x
-    #         colorScale = colorScaleGenerator(values)
-    #         forEachCell (x, elem) -> elem.css "background-color", colorScale(x)
+            values = []
+            forEachCell (x) -> values.push x
+            colorScale = colorScaleGenerator(values)
+            forEachCell (x, elem) -> elem.css "background-color", colorScale(x)
 
-    #     switch scope
-    #         when "heatmap"    then heatmapper ".pvtVal"
-    #         when "rowheatmap" then heatmapper ".pvtVal.row#{i}" for i in [0...numRows]
-    #         when "colheatmap" then heatmapper ".pvtVal.col#{j}" for j in [0...numCols]
+        switch scope
+            when "heatmap"    then heatmapper ".pvtVal"
+            when "rowheatmap" then heatmapper ".pvtVal.row#{i}" for i in [0...numRows]
+            when "colheatmap" then heatmapper ".pvtVal.col#{j}" for j in [0...numCols]
 
-    #     heatmapper ".pvtTotal.rowTotal"
-    #     heatmapper ".pvtTotal.colTotal"
+        heatmapper ".pvtTotal.rowTotal"
+        heatmapper ".pvtTotal.colTotal"
 
-    #     return this
+        return this
 
     ###
     Barchart post-processing
     ###
 
-    # $.fn.barchart =  ->
-    #     numRows = @data "numrows"
-    #     numCols = @data "numcols"
+    $.fn.barchart =  ->
+        numRows = @data "numrows"
+        numCols = @data "numcols"
 
-    #     barcharter = (scope) =>
-    #         forEachCell = (f) =>
-    #             @find(scope).each ->
-    #                 x = $(this).data("value")
-    #                 f(x, $(this)) if x? and isFinite(x)
+        barcharter = (scope) =>
+            forEachCell = (f) =>
+                @find(scope).each ->
+                    x = $(this).data("value")
+                    f(x, $(this)) if x? and isFinite(x)
 
-    #         values = []
-    #         forEachCell (x) -> values.push x
-    #         max = Math.max(values...)
-    #         scaler = (x) -> 100*x/(1.4*max)
-    #         forEachCell (x, elem) ->
-    #             text = elem.text()
-    #             wrapper = $("<div>").css
-    #                 "position": "relative"
-    #                 "height": "55px"
-    #             wrapper.append $("<div>").css
-    #                 "position": "absolute"
-    #                 "bottom": 0
-    #                 "left": 0
-    #                 "right": 0
-    #                 "height": scaler(x) + "%"
-    #                 "background-color": "gray"
-    #             wrapper.append $("<div>").text(text).css
-    #                 "position":"relative"
-    #                 "padding-left":"5px"
-    #                 "padding-right":"5px"
+            values = []
+            forEachCell (x) -> values.push x
+            max = Math.max(values...)
+            scaler = (x) -> 100*x/(1.4*max)
+            forEachCell (x, elem) ->
+                text = elem.text()
+                wrapper = $("<div>").css
+                    "position": "relative"
+                    "height": "55px"
+                wrapper.append $("<div>").css
+                    "position": "absolute"
+                    "bottom": 0
+                    "left": 0
+                    "right": 0
+                    "height": scaler(x) + "%"
+                    "background-color": "gray"
+                wrapper.append $("<div>").text(text).css
+                    "position":"relative"
+                    "padding-left":"5px"
+                    "padding-right":"5px"
 
-    #             elem.css("padding": 0,"padding-top": "5px", "text-align": "center").html wrapper
+                elem.css("padding": 0,"padding-top": "5px", "text-align": "center").html wrapper
 
-    #     barcharter ".pvtVal.row#{i}" for i in [0...numRows]
-    #     barcharter ".pvtTotal.colTotal"
+        barcharter ".pvtVal.row#{i}" for i in [0...numRows]
+        barcharter ".pvtTotal.colTotal"
 
-    #     return this
+        return this
