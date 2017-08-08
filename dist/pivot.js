@@ -423,7 +423,8 @@
         "Sum as Fraction of Columns": tpl.fractionOf(tpl.sum(), "col", usFmtPct),
         "Count as Fraction of Total": tpl.fractionOf(tpl.count(), "total", usFmtPct),
         "Count as Fraction of Rows": tpl.fractionOf(tpl.count(), "row", usFmtPct),
-        "Count as Fraction of Columns": tpl.fractionOf(tpl.count(), "col", usFmtPct)
+        "Count as Fraction of Columns": tpl.fractionOf(tpl.count(), "col", usFmtPct),
+        "intensity": null
       };
     })(aggregatorTemplates);
     renderers = {
@@ -1538,7 +1539,10 @@
               rows: [],
               dataClass: opts.dataClass
             };
-            numInputsToProcess = (ref1 = opts.aggregators[aggregator.val()]([])().numInputs) != null ? ref1 : 0;
+            numInputsToProcess = 0;
+            if (opts.aggregators[aggregator.val()]) {
+              numInputsToProcess = (ref1 = opts.aggregators[aggregator.val()]([])().numInputs) != null ? ref1 : 0;
+            }
             vals = [];
             _this.find(".pvtRows li span.pvtAttr").each(function() {
               return subopts.rows.push($(this).data("attrName"));
@@ -1580,7 +1584,10 @@
             }
             subopts.aggregatorName = aggregator.val();
             subopts.vals = vals;
-            subopts.aggregator = opts.aggregators[aggregator.val()](vals);
+            subopts.aggregator = null;
+            if (opts.aggregators[aggregator.val()]) {
+              subopts.aggregator = opts.aggregators[aggregator.val()](vals);
+            }
             subopts.renderer = opts.renderers[renderer[rowId].val()];
             subopts.rowOrder = rowOrderArrow.data("order");
             subopts.colOrder = colOrderArrow.data("order");
@@ -1666,9 +1673,6 @@
         for (o = 0, len3 = ref2.length; o < len3; o++) {
           x = ref2[o];
           this.find(".pvtRows").append(this.find(".axis_" + ($.inArray(x, shownAttributes))));
-        }
-        if (opts.aggregatorName != null) {
-          this.find(".pvtAggregator").val(opts.aggregatorName);
         }
         selectOptions = (function(_this) {
           return function(className) {

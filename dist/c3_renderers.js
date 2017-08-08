@@ -18,7 +18,8 @@
         chartOpts = {};
       }
       return function(pivotData, opts) {
-        var agg, attrs, base, base1, base2, base3, base4, base5, c, categories, colKey, colKeys, columns, dataColumns, defaults, fullAggName, groupByTitle, h, hAxisTitle, headers, i, j, k, l, len, len1, len2, len3, len4, m, numCharsInHAxis, numSeries, params, ref, ref1, ref2, ref3, renderArea, result, rotationAngle, row, rowHeader, rowKey, rowKeys, s, scatterData, series, title, titleText, vAxisTitle, val, vals, x, xs;
+        var a, agg, attrs, base, base1, base2, base3, base4, base5, c, categories, colKey, colKeys, columns, dataColumns, defaults, fullAggName, groupByTitle, h, hAxisTitle, headers, i, j, k, l, len, len1, len2, len3, len4, len5, m, metaboliteName, metabolites, metadata, n, numCharsInHAxis, numSeries, params, ref, ref1, ref2, ref3, ref4, ref5, renderArea, result, rotationAngle, rowKey, rowKeys, s, scatterData, series, title, titleText, vAxisTitle, vals, x, xs;
+        console.log(pivotData);
         defaults = {
           localeStrings: {
             vs: "vs",
@@ -119,25 +120,28 @@
           if (numCharsInHAxis > 50) {
             rotationAngle = 45;
           }
-          columns = [];
-          for (l = 0, len3 = rowKeys.length; l < len3; l++) {
-            rowKey = rowKeys[l];
-            rowHeader = rowKey.join("-");
-            row = [rowHeader === "" ? fullAggName : rowHeader];
-            for (m = 0, len4 = colKeys.length; m < len4; m++) {
-              colKey = colKeys[m];
-              val = parseFloat(pivotData.getAggregator(rowKey, colKey).value());
-              if (isFinite(val)) {
-                if (val < 1) {
-                  row.push(val.toPrecision(3));
-                } else {
-                  row.push(val.toFixed(3));
-                }
-              } else {
-                row.push(null);
+          metabolites = [];
+          columns = [['x', headers[0], headers[1]]];
+          a = pivotData.rowAttrs[0];
+          console.log(a);
+          ref4 = pivotData.input;
+          for (l = 0, len3 = ref4.length; l < len3; l++) {
+            metadata = ref4[l];
+            if (metadata[a].indexOf(columns) !== 1) {
+              columns.push([metadata[a]]);
+              break;
+            }
+          }
+          console.log(columns);
+          for (m = 0, len4 = columns.length; m < len4; m++) {
+            metaboliteName = columns[m];
+            ref5 = pivotData.input;
+            for (n = 0, len5 = ref5.length; n < len5; n++) {
+              metadata = ref5[n];
+              if (metaboliteName[0] === metadata[a]) {
+                metaboliteName.push(metadata[pivotData['aggregatorName']]);
               }
             }
-            columns.push(row);
           }
           vAxisTitle = fullAggName;
           if (chartOpts.horizontal) {
@@ -174,6 +178,7 @@
             }
           },
           data: {
+            x: 'x',
             type: chartOpts.type,
             order: null
           },
@@ -220,10 +225,10 @@
           params.axis.x.type = 'category';
           if (chartOpts.horizontal) {
             categories = (function() {
-              var len5, n, results;
+              var len6, o, results;
               results = [];
-              for (n = 0, len5 = columns.length; n < len5; n++) {
-                c = columns[n];
+              for (o = 0, len6 = columns.length; o < len6; o++) {
+                c = columns[o];
                 results.push(c.shift());
               }
               return results;
@@ -238,7 +243,8 @@
             columns.unshift(headers);
             params.data.rows = columns;
           } else {
-            params.axis.x.categories = headers;
+            console.log(params);
+            console.log(columns);
             params.data.columns = columns;
           }
         }
@@ -246,10 +252,10 @@
           if (chartOpts.horizontal) {
             params.data.groups = [
               (function() {
-                var len5, n, results;
+                var len6, o, results;
                 results = [];
-                for (n = 0, len5 = colKeys.length; n < len5; n++) {
-                  x = colKeys[n];
+                for (o = 0, len6 = colKeys.length; o < len6; o++) {
+                  x = colKeys[o];
                   results.push(x.join("-"));
                 }
                 return results;
@@ -258,10 +264,10 @@
           } else {
             params.data.groups = [
               (function() {
-                var len5, n, results;
+                var len6, o, results;
                 results = [];
-                for (n = 0, len5 = rowKeys.length; n < len5; n++) {
-                  x = rowKeys[n];
+                for (o = 0, len6 = rowKeys.length; o < len6; o++) {
+                  x = rowKeys[o];
                   results.push(x.join("-"));
                 }
                 return results;
@@ -281,30 +287,10 @@
       };
     };
     return $.pivotUtilities.c3_renderers = {
-      "Horizontal Bar Chart": makeC3Chart({
-        type: "bar",
-        horizontal: true
-      }),
-      "Horizontal Stacked Bar Chart": makeC3Chart({
-        type: "bar",
-        stacked: true,
-        horizontal: true
-      }),
       "Bar Chart": makeC3Chart({
         type: "bar"
       }),
-      "Stacked Bar Chart": makeC3Chart({
-        type: "bar",
-        stacked: true
-      }),
-      "Line Chart": makeC3Chart(),
-      "Area Chart": makeC3Chart({
-        type: "area",
-        stacked: true
-      }),
-      "Scatter Chart": makeC3Chart({
-        type: "scatter"
-      })
+      "Line Chart": makeC3Chart()
     };
   });
 

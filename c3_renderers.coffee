@@ -10,6 +10,7 @@ callWithJQuery = (pivotModule) ->
 callWithJQuery ($, c3) ->
 
     makeC3Chart = (chartOpts = {}) -> (pivotData, opts) ->
+        console.log(pivotData)
         defaults =
             localeStrings: {vs: "vs", by: "by"}
             c3: {}
@@ -22,12 +23,12 @@ callWithJQuery ($, c3) ->
         chartOpts.horizontal ?= false
         chartOpts.stacked ?= false
 
-        rowKeys = pivotData.getRowKeys()
+        rowKeys = pivotData.getRowKeys() # state
         rowKeys.push [] if rowKeys.length == 0
-        colKeys = pivotData.getColKeys()
+        colKeys = pivotData.getColKeys() # intensities
         colKeys.push [] if colKeys.length == 0
 
-        headers = (h.join("-") for h in colKeys)
+        headers = (h.join("-") for h in colKeys) # intensities
         rotationAngle = 0
 
         fullAggName = pivotData.aggregatorName
@@ -37,6 +38,7 @@ callWithJQuery ($, c3) ->
         if chartOpts.type == "scatter"
             scatterData = x:{}, y:{}, t:{}
             attrs = pivotData.rowAttrs.concat(pivotData.colAttrs)
+            # console.log(attrs)
             vAxisTitle = attrs[0] ? ""
             hAxisTitle = attrs[1] ? ""
             groupByTitle = attrs.slice(2).join("-")
@@ -46,6 +48,7 @@ callWithJQuery ($, c3) ->
             for rowKey in rowKeys
                 for colKey in colKeys
                     agg = pivotData.getAggregator(rowKey, colKey)
+                    # console.log(pivotData)
                     if agg.value()?
                         vals = rowKey.concat(colKey)
                         series = vals.slice(2).join("-")
@@ -63,20 +66,42 @@ callWithJQuery ($, c3) ->
             if numCharsInHAxis > 50
                 rotationAngle = 45
 
-            columns = []
-            for rowKey in rowKeys
-                rowHeader = rowKey.join("-")
-                row = [if rowHeader == "" then fullAggName else rowHeader]
-                for colKey in colKeys
-                    val = parseFloat  pivotData.getAggregator(rowKey, colKey).value()
-                    if isFinite(val)
-                        if val < 1
-                            row.push val.toPrecision(3)
-                        else
-                            row.push val.toFixed(3)
-                    else
-                        row.push null
-                columns.push row
+            # columns = [
+            #     [pivotData.input[0].metabolite_id, pivotData.input[0].intensity, pivotData.input[1].intensity]
+            # ]
+            metabolites = []
+            columns = [
+                ['x', headers[0], headers[1]]
+            ]
+            a = pivotData.rowAttrs[0]
+            console.log(a)
+            for metadata in pivotData.input
+                if metadata[a].indexOf(columns) != 1
+                    columns.push([metadata[a]])
+                    break
+            console.log(columns)
+            for metaboliteName in columns
+                for metadata in pivotData.input
+                    if metaboliteName[0] == metadata[a]
+                        metaboliteName.push metadata[pivotData['aggregatorName']]
+
+            # for rowKey in rowKeys
+            #     rowHeader = rowKey.join("-")
+            #     row = [if rowHeader == "" then fullAggName else rowHeader]
+            #     for colKey in colKeys
+            #         # if colKey < 1000
+            #         # val = parseFloat  pivotData.getAggregator(rowKey, colKey).value()
+            #         # if isFinite(val)
+            #         #     if val < 1
+            #         #         row.push val.toPrecision(3)
+            #         #     else
+            #         #         row.push val.toFixed(3)
+            #         # else
+            #         #     row.push null
+            #         row.push colKey
+                # columns.push row
+
+                # console.log(columns)
 
             vAxisTitle = fullAggName
 
@@ -104,6 +129,7 @@ callWithJQuery ($, c3) ->
                         rotate: rotationAngle
                         multiline: false
             data:
+                x: 'x'
                 type: chartOpts.type
                 order: null
             tooltip:
@@ -149,7 +175,9 @@ callWithJQuery ($, c3) ->
                 columns.unshift(headers)
                 params.data.rows = columns
             else
-                params.axis.x.categories = headers
+                console.log(params)
+                # params.axis.x.categories = headers
+                console.log(columns)
                 params.data.columns = columns
 
 
@@ -168,10 +196,12 @@ callWithJQuery ($, c3) ->
         return $("<div>").append title, result
 
     $.pivotUtilities.c3_renderers =
-        "Horizontal Bar Chart": makeC3Chart(type: "bar", horizontal: true)
-        "Horizontal Stacked Bar Chart": makeC3Chart(type: "bar", stacked: true, horizontal: true)
+        # "Horizontal Bar Chart": makeC3Chart(type: "bar", horizontal: true)
+        # "Horizontal Stacked Bar Chart": makeC3Chart(type: "bar", stacked: true, horizontal: true)
         "Bar Chart": makeC3Chart(type: "bar")
-        "Stacked Bar Chart": makeC3Chart(type: "bar", stacked: true)
+        # "Stacked Bar Chart": makeC3Chart(type: "bar", stacked: true)
         "Line Chart": makeC3Chart()
-        "Area Chart": makeC3Chart(type: "area", stacked: true)
-        "Scatter Chart": makeC3Chart(type: "scatter")
+        # "Area Chart": makeC3Chart(type: "area", stacked: true)
+        # "Scatter Chart": makeC3Chart(type: "scatter")
+        # "Pie Chart": makeC3Chart(type: "pie")
+        # "Volcano Chart": makeC3Chart(type: "volcano")

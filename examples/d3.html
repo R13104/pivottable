@@ -37,7 +37,7 @@
         $.getJSON("mps.json", function(mps) {
             $("#output").pivotUI(mps, {
                 renderers: $.pivotUtilities.d3_renderers,
-                cols: [], rows: ["Province", "Party"],
+                cols: ["intensity"], rows: ["state"],
                 rendererName: "Treemap"
             });
         });
@@ -47,6 +47,7 @@
         <p><a href="index.html">&laquo; back to PivotTable.js examples</a></p>
 
         <div id="output" style="margin: 30px;"></div>
+        <button id="addslice">Add New Slice</button>
 
     </body>
 </html>

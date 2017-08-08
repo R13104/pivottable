@@ -177,6 +177,7 @@ callWithJQuery ($) ->
         "Count as Fraction of Total":   tpl.fractionOf(tpl.count(), "total", usFmtPct)
         "Count as Fraction of Rows":    tpl.fractionOf(tpl.count(), "row",   usFmtPct)
         "Count as Fraction of Columns": tpl.fractionOf(tpl.count(), "col",   usFmtPct)
+        "intensity": null
 
     renderers =
         "Table":          (data, opts) ->   pivotTableRenderer(data, opts)
@@ -966,8 +967,15 @@ callWithJQuery ($) ->
                     sorters: opts.sorters
                     cols: [], rows: []
                     dataClass: opts.dataClass
+                
+                # customization
 
-                numInputsToProcess = opts.aggregators[aggregator.val()]([])().numInputs ? 0
+                numInputsToProcess = 0
+                if opts.aggregators[aggregator.val()]
+                    numInputsToProcess = opts.aggregators[aggregator.val()]([])().numInputs ? 0
+
+                # customization end
+                
                 vals = []
                 @find(".pvtRows li span.pvtAttr").each -> subopts.rows.push $(this).data("attrName")
                 @find(".pvtCols li span.pvtAttr").each -> subopts.cols.push $(this).data("attrName")
@@ -999,7 +1007,16 @@ callWithJQuery ($) ->
 
                 subopts.aggregatorName = aggregator.val()
                 subopts.vals = vals
-                subopts.aggregator = opts.aggregators[aggregator.val()](vals)
+
+
+
+                # customization
+                subopts.aggregator = null
+                if opts.aggregators[aggregator.val()]
+                    subopts.aggregator = opts.aggregators[aggregator.val()](vals)
+
+                # customization end
+
                 subopts.renderer = opts.renderers[renderer[rowId].val()]
                 subopts.rowOrder = rowOrderArrow.data("order")
                 subopts.colOrder = colOrderArrow.data("order")
@@ -1075,8 +1092,8 @@ callWithJQuery ($) ->
                 @find(".pvtCols").append @find(".axis_#{$.inArray(x, shownAttributes)}")
             for x in opts.rows
                 @find(".pvtRows").append @find(".axis_#{$.inArray(x, shownAttributes)}")
-            if opts.aggregatorName?
-                @find(".pvtAggregator").val opts.aggregatorName
+            # if opts.aggregatorName?
+            #     @find(".pvtAggregator").val opts.aggregatorName
             
             selectOptions = (className) =>
                 if opts.rendererName?
