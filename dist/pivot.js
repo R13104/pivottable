@@ -1530,6 +1530,7 @@
         refreshDelayedPlot = (function(_this) {
           return function(rowId) {
             var exclusions, inclusions, initialRender, len2, n, newDropdown, numInputsToProcess, o, pivotUIOptions, pvtVals, ref1, ref2, subopts, unusedAttrsContainer, vals;
+            console.log(rowId);
             subopts = {
               derivedAttributes: opts.derivedAttributes,
               localeStrings: opts.localeStrings,

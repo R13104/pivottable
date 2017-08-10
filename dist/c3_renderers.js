@@ -18,8 +18,8 @@
         chartOpts = {};
       }
       return function(pivotData, opts) {
-        var a, agg, attrs, base, base1, base2, base3, base4, base5, c, categories, colKey, colKeys, columns, dataColumns, defaults, fullAggName, groupByTitle, h, hAxisTitle, headers, i, j, k, l, len, len1, len2, len3, len4, len5, m, metaboliteName, metabolites, metadata, n, numCharsInHAxis, numSeries, params, ref, ref1, ref2, ref3, ref4, ref5, renderArea, result, rotationAngle, rowKey, rowKeys, s, scatterData, series, title, titleText, vAxisTitle, vals, x, xs;
-        console.log(pivotData);
+        var a, agg, attrs, base, base1, base2, base3, base4, base5, c, categories, colKey, colKeys, columns, dataColumns, defaults, fullAggName, groupByTitle, h, hAxisTitle, header, headers, i, j, k, l, len, len1, len2, len3, len4, len5, len6, m, metaboliteName, metabolites, metadata, n, numCharsInHAxis, numSeries, o, params, ref, ref1, ref2, ref3, ref4, ref5, renderArea, result, rotationAngle, rowKey, rowKeys, s, scatterData, series, title, titleText, vAxisTitle, vals, x, xs;
+        console.log("this is ");
         defaults = {
           localeStrings: {
             vs: "vs",
@@ -121,23 +121,26 @@
             rotationAngle = 45;
           }
           metabolites = [];
-          columns = [['x', headers[0], headers[1]]];
+          columns = [['x']];
+          for (l = 0, len3 = headers.length; l < len3; l++) {
+            header = headers[l];
+            columns[0].push(header);
+          }
           a = pivotData.rowAttrs[0];
           console.log(a);
           ref4 = pivotData.input;
-          for (l = 0, len3 = ref4.length; l < len3; l++) {
-            metadata = ref4[l];
+          for (m = 0, len4 = ref4.length; m < len4; m++) {
+            metadata = ref4[m];
             if (metadata[a].indexOf(columns) !== 1) {
               columns.push([metadata[a]]);
-              break;
             }
           }
           console.log(columns);
-          for (m = 0, len4 = columns.length; m < len4; m++) {
-            metaboliteName = columns[m];
+          for (n = 0, len5 = columns.length; n < len5; n++) {
+            metaboliteName = columns[n];
             ref5 = pivotData.input;
-            for (n = 0, len5 = ref5.length; n < len5; n++) {
-              metadata = ref5[n];
+            for (o = 0, len6 = ref5.length; o < len6; o++) {
+              metadata = ref5[o];
               if (metaboliteName[0] === metadata[a]) {
                 metaboliteName.push(metadata[pivotData['aggregatorName']]);
               }
@@ -225,10 +228,10 @@
           params.axis.x.type = 'category';
           if (chartOpts.horizontal) {
             categories = (function() {
-              var len6, o, results;
+              var len7, p, results;
               results = [];
-              for (o = 0, len6 = columns.length; o < len6; o++) {
-                c = columns[o];
+              for (p = 0, len7 = columns.length; p < len7; p++) {
+                c = columns[p];
                 results.push(c.shift());
               }
               return results;
@@ -252,10 +255,10 @@
           if (chartOpts.horizontal) {
             params.data.groups = [
               (function() {
-                var len6, o, results;
+                var len7, p, results;
                 results = [];
-                for (o = 0, len6 = colKeys.length; o < len6; o++) {
-                  x = colKeys[o];
+                for (p = 0, len7 = colKeys.length; p < len7; p++) {
+                  x = colKeys[p];
                   results.push(x.join("-"));
                 }
                 return results;
@@ -264,10 +267,10 @@
           } else {
             params.data.groups = [
               (function() {
-                var len6, o, results;
+                var len7, p, results;
                 results = [];
-                for (o = 0, len6 = rowKeys.length; o < len6; o++) {
-                  x = rowKeys[o];
+                for (p = 0, len7 = rowKeys.length; p < len7; p++) {
+                  x = rowKeys[p];
                   results.push(x.join("-"));
                 }
                 return results;
@@ -280,6 +283,7 @@
         }).appendTo($("body"));
         result = $("<div>").appendTo(renderArea);
         params.bindto = result[0];
+        console.log(c3.generate);
         c3.generate(params);
         result.detach();
         renderArea.remove();

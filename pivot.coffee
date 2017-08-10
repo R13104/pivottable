@@ -960,6 +960,7 @@ callWithJQuery ($) ->
 
             #set up for refreshing
             refreshDelayedPlot = (rowId) =>
+                console.log(rowId)
                 subopts =
                     derivedAttributes: opts.derivedAttributes
                     localeStrings: opts.localeStrings

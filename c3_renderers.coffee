@@ -10,7 +10,7 @@ callWithJQuery = (pivotModule) ->
 callWithJQuery ($, c3) ->
 
     makeC3Chart = (chartOpts = {}) -> (pivotData, opts) ->
-        console.log(pivotData)
+        console.log("this is ")
         defaults =
             localeStrings: {vs: "vs", by: "by"}
             c3: {}
@@ -66,19 +66,20 @@ callWithJQuery ($, c3) ->
             if numCharsInHAxis > 50
                 rotationAngle = 45
 
-            # columns = [
-            #     [pivotData.input[0].metabolite_id, pivotData.input[0].intensity, pivotData.input[1].intensity]
-            # ]
             metabolites = []
             columns = [
-                ['x', headers[0], headers[1]]
+                ['x']
             ]
+
+            for header in headers
+                columns[0].push header
+            
             a = pivotData.rowAttrs[0]
             console.log(a)
             for metadata in pivotData.input
                 if metadata[a].indexOf(columns) != 1
                     columns.push([metadata[a]])
-                    break
+            
             console.log(columns)
             for metaboliteName in columns
                 for metadata in pivotData.input
@@ -190,6 +191,7 @@ callWithJQuery ($, c3) ->
         renderArea = $("<div>", style: "display:none;").appendTo $("body")
         result = $("<div>").appendTo renderArea
         params.bindto = result[0]
+        console.log(c3.generate)
         c3.generate params
         result.detach()
         renderArea.remove()
