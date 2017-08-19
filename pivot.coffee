@@ -177,7 +177,6 @@ callWithJQuery ($) ->
         "Count as Fraction of Total":   tpl.fractionOf(tpl.count(), "total", usFmtPct)
         "Count as Fraction of Rows":    tpl.fractionOf(tpl.count(), "row",   usFmtPct)
         "Count as Fraction of Columns": tpl.fractionOf(tpl.count(), "col",   usFmtPct)
-        "Intensity": null
 
     renderers =
         "Table":          (data, opts) ->   pivotTableRenderer(data, opts)
