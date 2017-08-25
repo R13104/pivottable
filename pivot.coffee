@@ -89,9 +89,11 @@ callWithJQuery ($) ->
             numInputs: if attr? then 0 else 1
 
         runningStat: (mode="mean", ddof=1, formatter=usFmt) -> ([attr]) -> (data, rowKey, colKey) ->
-            n: 0.0, m: 0.0, s: 0.0
+            n: 0.0, m: 0.0, s: 0.0, error: 0.0
             push: (record) ->
+                console.log(record)
                 x = parseFloat(record[attr])
+                console.log(attr)
                 return if isNaN(x)
                 @n += 1.0
                 if @n == 1.0
@@ -100,9 +102,13 @@ callWithJQuery ($) ->
                     m_new = @m + (x - @m)/@n
                     @s = @s + (x - @m)*(x - m_new)
                     @m = m_new
+                    @error = Math.sqrt(@s/(@n-ddof))
             value: ->
                 if mode == "mean"
-                    return if @n == 0 then 0/0 else @m
+                    if @n == 0 
+                        return 0/0 
+                    else
+                        return @m
                 return 0 if @n <= ddof
                 switch mode
                     when "var"   then @s/(@n-ddof)
