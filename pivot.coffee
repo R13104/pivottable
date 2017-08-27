@@ -91,9 +91,9 @@ callWithJQuery ($) ->
         runningStat: (mode="mean", ddof=1, formatter=usFmt) -> ([attr]) -> (data, rowKey, colKey) ->
             n: 0.0, m: 0.0, s: 0.0, error: 0.0
             push: (record) ->
-                console.log(record)
+                # console.log(record)
                 x = parseFloat(record[attr])
-                console.log(attr)
+                # console.log(attr)
                 return if isNaN(x)
                 @n += 1.0
                 if @n == 1.0
