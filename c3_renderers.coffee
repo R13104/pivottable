@@ -81,18 +81,33 @@ callWithJQuery ($, c3) ->
 
         data = []
         for header, index in headers
-            trace = {
-                x: [],
-                y: [],
-                error_y: {
-                    type: 'data',
-                    array: [],
-                    visible: true
-                },
-                name: header,
-                type: chartOpts.type
+            if chartOpts.type == 'scatter'
+                trace = {
+                    x: [],
+                    y: [],
+                    error_y: {
+                        type: 'data',
+                        array: [],
+                        visible: true
+                    },
+                    mode: 'markers',
+                    name: header,
+                    type: chartOpts.type
 
-            }
+                }
+            else
+                trace = {
+                    x: [],
+                    y: [],
+                    error_y: {
+                        type: 'data',
+                        array: [],
+                        visible: true
+                    },
+                    name: header,
+                    type: chartOpts.type
+
+                }
             for column in columns
                 trace.x.push column[0]
                 trace.y.push column[index+1]
