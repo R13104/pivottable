@@ -311,8 +311,8 @@ callWithJQuery ($) ->
     class PivotData
         constructor: (input, opts = {}) ->
             @input = input
-            @aggregator = opts.aggregator ? aggregatorTemplates.average()()
-            @aggregatorName = opts.aggregatorName ? "Average"
+            @aggregator = opts.aggregator ? aggregatorTemplates.count()()
+            @aggregatorName = opts.aggregatorName ? "Count"
             @colAttrs = opts.cols ? []
             @rowAttrs = opts.rows ? []
             @valAttrs = opts.vals ? []
@@ -622,8 +622,8 @@ callWithJQuery ($) ->
             rowOrder: "key_a_to_z", colOrder: "key_a_to_z"
             dataClass: PivotData
             filter: -> true
-            aggregator: aggregatorTemplates.average()()
-            aggregatorName: "Average"
+            aggregator: aggregatorTemplates.count()()
+            aggregatorName: "Count"
             sorters: {}
             derivedAttributes: {}
             renderer: pivotTableRenderer
